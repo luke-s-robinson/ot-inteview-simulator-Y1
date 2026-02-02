@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First-Year OT Interview Simulator</title>
+    <style>
+        :root {
+            --color-bg-base: #0f172a;
+            --color-bg-elevated: #1e293b;
+            --color-bg-surface: #334155;
+            --color-text-primary: #f1f5f9;
+            --color-text-secondary: #cbd5e1;
+            --color-text-muted: #94a3b8;
+            --color-primary: #10b981;
+            --color-primary-hover: #059669;
+            --color-success: #22c55e;
+            --color-warning: #eab308;
+            --color-error: #ef4444;
+            --color-border: rgba(148, 163, 184, 0.2);
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --color-bg-base: #ffffff;
+                --color-bg-elevated: #f8fafc;
+                --color-bg-surface: #f1f5f9;
+                --color-text-primary: #0f172a;
+                --color-text-secondary: #475569;
+                --color-text-muted: #64748b;
+                --color-primary: #059669;
+                --color-primary-hover: #047857;
+                --color-border: rgba(71, 85, 105, 0.2);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--color-bg-base);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--color-bg-elevated);
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--color-primary), #22c55e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--color-bg-elevated);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--color-border);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--color-primary);
+        }
+
+        .scenario-selector {
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-selector label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+        }
+
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--color-bg-surface);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: #0f172a;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--color-bg-surface);
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--color-bg-base);
+        }
+
+        .scenario-context {
+            background: var(--color-bg-surface);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .scenario-context h3 {
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-primary);
+        }
+
+        .scenario-context p {
+            color: var(--color-text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .voice-status {
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .status-ready {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--color-success);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-listening {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--color-primary);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .status-speaking {
+            background: rgba(234, 179, 8, 0.1);
+            color: var(--color-warning);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .conversation-log {
+            max-height: 400px;
+            overflow-y: auto;
+            background: var(--color-bg-surface);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-student {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid var(--color-primary);
+        }
+
+        .message-client {
+            background: rgba(148, 163, 184, 0.1);
+            border-left: 3px solid var(--color-text-muted);
+        }
+
+        .message-system {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .message-label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+            color: var(--color-text-secondary);
+        }
+
+        .message-text {
+            color: var(--color-text-primary);
+        }
+
+        .feedback-section {
+            background: var(--color-bg-surface);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .feedback-section h3 {
+            font-size: 1.125rem;
+            margin-bottom: 0.75rem;
+            color: var(--color-primary);
+        }
+
+        .feedback-item {
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+
+        .feedback-positive {
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .feedback-improve {
+            background: rgba(234, 179, 8, 0.1);
+        }
+
+        .feedback-icon {
+            font-size: 1.25rem;
+        }
+
+        .feedback-text {
+            flex: 1;
+            font-size: 0.95rem;
+            color: var(--color-text-secondary);
+        }
+
+        .tips-section {
+            background: var(--color-bg-surface);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .tips-section h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: var(--color-primary);
+        }
+
+        .tips-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips-section li {
+            padding: 0.5rem 0;
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: start;
+            gap: 0.5rem;
+        }
+
+        .tips-section li::before {
+            content: "→";
+            color: var(--color-primary);
+            font-weight: bold;
+        }
+
+        .browser-support-warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: var(--color-error);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .score-pill {
+            background: rgba(15, 118, 110, 0.15);
+            border-radius: 999px;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            color: var(--color-text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .score-pill span.value {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>First-Year OT Interview Simulator</h1>
+            <p class="subtitle">Practice greeting, building rapport, gathering occupational history, and summarising to an educator.</p>
+        </header>
+
+        <div id="browserWarning" class="browser-support-warning hidden">
+            ⚠️ Voice recognition may not be supported in your browser. Please use Chrome, Edge, or Safari for the best experience.
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Scenario Selection</h2>
+                
+                <div class="scenario-selector">
+                    <label for="scenarioSelect">Choose a client interview:</label>
+                    <select id="scenarioSelect">
+                        <option value="stroke">Post-Stroke: Self-Care Focus</option>
+                        <option value="fracture">Wrist Fracture: Productivity Focus</option>
+                        <option value="anxiety">Anxiety: Leisure & Routine</option>
+                        <option value="elderly">Elderly Fall: Home Environment</option>
+                    </select>
+                </div>
+
+                <div id="scenarioContext" class="scenario-context">
+                    <h3>Scenario: Post-Stroke: Self-Care Focus</h3>
+                    <p><strong>Client:</strong> Margaret, 68, two weeks post-stroke, currently in rehab.</p>
+                    <p><strong>Practice:</strong> Greeting, introducing yourself as an OT student, explaining your role, gaining consent, asking about self-care occupations (before/after stroke), summarising and handing over key information.</p>
+                </div>
+
+                <button id="startBtn" class="btn btn-primary">
+                    <span>🎤</span> Start Interview
+                </button>
+                <button id="endBtn" class="btn btn-secondary" disabled>
+                    <span>⏹️</span> End Interview & View Feedback
+                </button>
+
+                <div id="voiceStatus" class="voice-status status-ready">
+                    🟢 Ready to start
+                </div>
+
+                <div class="tips-section">
+                    <h3>Assessment Focus (Based on Your Rubric)</h3>
+                    <ul>
+                        <li>Greet the client and use their name.</li>
+                        <li>Introduce yourself as an occupational therapy student and briefly explain your role.</li>
+                        <li>Gain consent to proceed with the interview.</li>
+                        <li>Use clear, simple questions about self-care, productivity, and leisure occupations pre- and post-condition.[file:36]</li>
+                        <li>Periodically summarise to check your understanding.</li>
+                        <li>Conclude and give a brief handover summary to your supervisor.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Conversation & Feedback</h2>
+                
+                <div id="conversationLog" class="conversation-log">
+                    <p style="color: var(--color-text-muted); text-align: center; padding: 2rem;">
+                        Select a scenario and click "Start Interview". Click in this area to speak when the status shows "Listening...".
+                    </p>
+                </div>
+
+                <div id="feedbackSection" class="feedback-section hidden">
+                    <h3>Rubric-Aligned Feedback</h3>
+                    <div class="scores-grid" id="scoresGrid"></div>
+                    <div id="feedbackContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Scenario definitions (simple, first-year appropriate)
+        const scenarios = {
+            stroke: {
+                title: "Post-Stroke: Self-Care Focus",
+                clientName: "Margaret",
+                description: "Margaret, 68, had a stroke two weeks ago. She is in rehab and finding self-care tasks much harder than before.",
+                opening: "Oh, hello. Are you here to ask me more questions? I get a bit mixed up with who everyone is.",
+            },
+            fracture: {
+                title: "Wrist Fracture: Productivity Focus",
+                clientName: "Sam",
+                description: "Sam, 32, fractured their right wrist. They work as a barista and are worried about returning to work.",
+                opening: "Hi. I heard you're from therapy? I really need to get back to work as soon as I can.",
+            },
+            anxiety: {
+                title: "Anxiety: Leisure & Routine",
+                clientName: "Jordan",
+                description: "Jordan, 24, experiences anxiety and has stopped many of their usual leisure activities and social routines.",
+                opening: "Um, hi. I'm not really sure what to say. I don't really do much these days.",
+            },
+            elderly: {
+                title: "Elderly Fall: Home Environment",
+                clientName: "Bill",
+                description: "Bill, 80, lives alone and recently had a fall at home. He is worried about his safety at home.",
+                opening: "Hello there. The nurse said someone would talk to me about going home.",
+            }
+        };
+
+        // Simple rubric scores tracked during interview
+        const rubricTemplate = () => ({
+            greeting: 0,          // greeted + name
+            otIntro: 0,           // introduced self as OT student + role
+            consent: 0,           // gained consent
+            rapport: 0,           // empathy / warm tone phrases
+            selfCare: 0,          // self-care questions
+            productivity: 0,      // work / study questions
+            leisure: 0,           // leisure / interests questions
+            summary: 0,           // summarising back
+            handover: 0           // final summary to educator
+        });
+
+        let rubricScores = rubricTemplate();
+        let currentScenarioKey = "stroke";
+        let isInterviewActive = false;
+        let hasGivenHandover = false;
+        let recognition = null;
+        let synthesis = window.speechSynthesis;
+
+        // Browser support warning
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            document.getElementById('browserWarning').classList.remove('hidden');
+        }
+
+        function initializeSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-AU';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                handleStudentResponse(transcript);
+            };
+
+            recognition.onerror = () => {
+                updateVoiceStatus('ready', '🟢 Click in the conversation area to speak');
+            };
+
+            recognition.onend = () => {
+                if (isInterviewActive) {
+                    updateVoiceStatus('ready', '🟢 Click in the conversation area to speak');
+                }
+            };
+        }
+
+        // Scenario change
+        document.getElementById('scenarioSelect').addEventListener('change', (e) => {
+            currentScenarioKey = e.target.value;
+            updateScenarioDisplay();
+        });
+
+        function updateScenarioDisplay() {
+            const scenario = scenarios[currentScenarioKey];
+            const contextDiv = document.getElementById('scenarioContext');
+            contextDiv.innerHTML = `
+                <h3>Scenario: ${scenario.title}</h3>
+                <p><strong>Client:</strong> ${scenario.description}</p>
+                <p><strong>Practice:</strong> Focus on greeting, OT introduction, consent, exploring occupations, summarising, and giving a brief handover at the end.</p>
+            `;
+        }
+
+        // Start interview
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!recognition) {
+                initializeSpeechRecognition();
+            }
+            if (!recognition) {
+                alert('Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+                return;
+            }
+
+            isInterviewActive = true;
+            hasGivenHandover = false;
+            rubricScores = rubricTemplate();
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('endBtn').disabled = false;
+            document.getElementById('feedbackSection').classList.add('hidden');
+            document.getElementById('scoresGrid').innerHTML = '';
+            document.getElementById('feedbackContent').innerHTML = '';
+            const logDiv = document.getElementById('conversationLog');
+            logDiv.innerHTML = '';
+
+            const scenario = scenarios[currentScenarioKey];
+            addMessage('client', scenario.opening);
+            speakText(scenario.opening);
+            updateVoiceStatus('speaking', '🔊 Client speaking...');
+        });
+
+        // End interview & show feedback
+        document.getElementById('endBtn').addEventListener('click', () => {
+            isInterviewActive = false;
+            if (recognition) recognition.stop();
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('endBtn').disabled = true;
+            updateVoiceStatus('ready', '🟢 Interview ended');
+
+            addMessage('system', 'Interview complete. Review your rubric feedback below.');
+            showRubricFeedback();
+        });
+
+        // Conversation log click to start listening
+        document.getElementById('conversationLog').addEventListener('click', () => {
+            if (isInterviewActive && recognition && !synthesis.speaking) {
+                updateVoiceStatus('listening', '🎤 Listening...');
+                recognition.start();
+            }
+        });
+
+        function updateVoiceStatus(status, message) {
+            const statusDiv = document.getElementById('voiceStatus');
+            statusDiv.className = `voice-status status-${status}`;
+            statusDiv.innerHTML = message;
+        }
+
+        function addMessage(role, text) {
+            const logDiv = document.getElementById('conversationLog');
+            const messageDiv = document.createElement('div');
+            let roleClass = 'message-system';
+            let label = 'System';
+
+            if (role === 'student') {
+                roleClass = 'message-student';
+                label = 'You (OT Student)';
+            } else if (role === 'client') {
+                roleClass = 'message-client';
+                label = 'Client';
+            }
+
+            messageDiv.className = `message ${roleClass}`;
+            messageDiv.innerHTML = `
+                <div class="message-label">${label}</div>
+                <div class="message-text">${text}</div>
+            `;
+            logDiv.appendChild(messageDiv);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) {
+                updateVoiceStatus('ready', '🟢 Click in the conversation area to speak');
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-AU';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+
+            utterance.onend = () => {
+                if (isInterviewActive) {
+                    updateVoiceStatus('ready', '🟢 Click in the conversation area to speak');
+                }
+            };
+
+            synthesis.speak(utterance);
+        }
+
+        function handleStudentResponse(transcript) {
+            if (!isInterviewActive) return;
+
+            const text = transcript.trim();
+            if (!text) return;
+
+            addMessage('student', text);
+
+            const lower = text.toLowerCase();
+            const scenario = scenarios[currentScenarioKey];
+
+            // Rubric detection based on simple keyword/phrase matches[file:36]
+            if (lower.match(/hello|hi|good (morning|afternoon|evening)/) && lower.includes(scenario.clientName.toLowerCase())) {
+                rubricScores.greeting = 1;
+            }
+
+            if (lower.includes("occupational therapy") || lower.includes("occupational therapist") || lower.includes("ot student")) {
+                rubricScores.otIntro = 1;
+            }
+
+            if (lower.includes("is that ok") || lower.includes("is that okay") || lower.includes("with your permission") || lower.includes("do you mind if")) {
+                rubricScores.consent = 1;
+            }
+
+            if (lower.includes("sounds like") || lower.includes("i can hear") || lower.includes("i understand") || lower.includes("that must be")) {
+                rubricScores.rapport = 1;
+            }
+
+            if (lower.includes("shower") || lower.includes("bathe") || lower.includes("washing") || lower.includes("dressing") || lower.includes("toilet")) {
+                rubricScores.selfCare = 1;
+            }
+
+            if (lower.includes("work") || lower.includes("job") || lower.includes("study") || lower.includes("university") || lower.includes("school")) {
+                rubricScores.productivity = 1;
+            }
+
+            if (lower.includes("hobby") || lower.includes("leisure") || lower.includes("sport") || lower.includes("games") || lower.includes("music") || lower.includes("friends") || lower.includes("social")) {
+                rubricScores.leisure = 1;
+            }
+
+            if (lower.includes("so what i'm hearing") || lower.includes("so what i am hearing") || lower.includes("so you are saying") || lower.includes("let me check i have this right") || lower.includes("to summarise") || lower.includes("to summarize")) {
+                rubricScores.summary = 1;
+            }
+
+            if (lower.includes("handover") || lower.includes("to my supervisor") || lower.includes("to my educator") || lower.includes("in summary") || lower.includes("overall")) {
+                rubricScores.handover = 1;
+                hasGivenHandover = true;
+            }
+
+            // Simple client follow-ups
+            let clientReply = "";
+
+            if (lower.includes("tell me about") && (lower.includes("shower") || lower.includes("washing") || lower.includes("dressing"))) {
+                clientReply = "Well, since the stroke, showering takes me much longer. I feel unsteady and need help with my back.";
+            } else if (lower.includes("before your stroke") || lower.includes("before all this")) {
+                clientReply = "Before all this, I managed on my own. I was pretty independent.";
+            } else if (lower.includes("work") || lower.includes("job")) {
+                clientReply = "Work is really important to me. I'm worried I won't be able to go back yet.";
+            } else if (lower.includes("hobbies") || lower.includes("leisure") || lower.includes("do for fun")) {
+                clientReply = "I used to enjoy gardening and seeing my friends at the bowls club.";
+            } else if (lower.includes("home") || lower.includes("stairs") || lower.includes("bathroom")) {
+                clientReply = "My house has a few steps at the front and a shower over the bath. I'm a bit nervous about slipping again.";
+            } else if (lower.includes("thank you") || lower.includes("thanks for speaking")) {
+                clientReply = "Thank you for explaining things. It helps to talk it through.";
+            } else if (lower.includes("anything else") || lower.includes("something else important")) {
+                clientReply = "I just want to get back to as normal a life as possible.";
+            } else if (hasGivenHandover) {
+                clientReply = "I'll leave you to talk with your supervisor. Thank you.";
+            } else {
+                clientReply = "Okay, I'm listening.";
+            }
+
+            setTimeout(() => {
+                addMessage('client', clientReply);
+                speakText(clientReply);
+            }, 500);
+        }
+
+        function showRubricFeedback() {
+            const feedbackSection = document.getElementById('feedbackSection');
+            const scoresGrid = document.getElementById('scoresGrid');
+            const feedbackContent = document.getElementById('feedbackContent');
+
+            feedbackSection.classList.remove('hidden');
+            scoresGrid.innerHTML = '';
+            feedbackContent.innerHTML = '';
+
+            const totalScore = Object.values(rubricScores).reduce((a, b) => a + b, 0);
+            let level = "Pass";
+            if (totalScore >= 7) level = "Good";
+            if (totalScore >= 9) level = "Exceptional";
+
+            const scoreItems = [
+                { key: 'greeting', label: 'Greeting & Name' },
+                { key: 'otIntro', label: 'OT Student Introduction' },
+                { key: 'consent', label: 'Gains Consent' },
+                { key: 'rapport', label: 'Rapport & Empathy' },
+                { key: 'selfCare', label: 'Self-Care Questions' },
+                { key: 'productivity', label: 'Productivity Questions' },
+                { key: 'leisure', label: 'Leisure Questions' },
+                { key: 'summary', label: 'Summarising' },
+                { key: 'handover', label: 'Handover Summary' },
+            ];
+
+            scoreItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'score-pill';
+                div.innerHTML = `
+                    <span>${item.label}</span>
+                    <span class="value">${rubricScores[item.key] ? '✓' : '•'}</span>
+                `;
+                scoresGrid.appendChild(div);
+            });
+
+            const overallDiv = document.createElement('div');
+            overallDiv.className = 'feedback-item feedback-positive';
+            overallDiv.innerHTML = `
+                <div class="feedback-icon">📊</div>
+                <div class="feedback-text">
+                    Overall performance: <strong>${level}</strong> (score ${totalScore} / 9). This aligns with your communication skills rubric (greeting, OT intro, consent, information gathering, structure, and handover).[file:36]
+                </div>
+            `;
+            feedbackContent.appendChild(overallDiv);
+
+            if (!rubricScores.greeting || !rubricScores.otIntro || !rubricScores.consent) {
+                const fb = document.createElement('div');
+                fb.className = 'feedback-item feedback-improve';
+                fb.innerHTML = `
+                    <div class="feedback-icon">🎯</div>
+                    <div class="feedback-text">
+                        Next time, focus on clearly greeting the client by name, introducing yourself as an occupational therapy student, and explicitly gaining consent before proceeding with questions.
+                    </div>
+                `;
+                feedbackContent.appendChild(fb);
+            }
+
+            if (!rubricScores.selfCare || !rubricScores.productivity || !rubricScores.leisure) {
+                const fb = document.createElement('div');
+                fb.className = 'feedback-item feedback-improve';
+                fb.innerHTML = `
+                    <div class="feedback-icon">📝</div>
+                    <div class="feedback-text">
+                        Aim to ask about at least two self-care, two productivity, and two leisure occupations, both before and after the client’s condition, to meet the information-gathering criteria.[file:36]
+                    </div>
+                `;
+                feedbackContent.appendChild(fb);
+            }
+
+            if (!rubricScores.summary || !rubricScores.handover) {
+                const fb = document.createElement('div');
+                fb.className = 'feedback-item feedback-improve';
+                fb.innerHTML = `
+                    <div class="feedback-icon">📣</div>
+                    <div class="feedback-text">
+                        Build your summarising and handover skills by periodically paraphrasing what the client has said and ending with a brief, clear summary you could share with a practice educator.
+                    </div>
+                `;
+                feedbackContent.appendChild(fb);
+            }
+
+            const finalTip = document.createElement('div');
+            finalTip.className = 'feedback-item feedback-positive';
+            finalTip.innerHTML = `
+                <div class="feedback-icon">✅</div>
+                <div class="feedback-text">
+                    Use this simulator repeatedly with different scenarios to build confidence in your basic interview structure before OSCEs or placement interviews.[web:8]
+                </div>
+            `;
+            feedbackContent.appendChild(finalTip);
+        }
+
+        // Initialise scenario text
+        updateScenarioDisplay();
+    </script>
+</body>
+</html>
